@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { users } from "./core/users";
 import { roles, actions } from "./core/roles";
 import { userRoles, rolePermissions } from "./core/user-roles";
+import { sessions, accounts, verifications } from "./core/sessions";
 import { artists } from "./user-types/artists";
 import { studios } from "./user-types/studios";
 import { students } from "./user-types/students";
@@ -38,6 +39,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // Audit relationships
   auditLogs: many(auditLog, { relationName: "user" }),
   targetAuditLogs: many(auditLog, { relationName: "targetUser" }),
+  
+  // Better Auth relationships
+  sessions: many(sessions),
+  accounts: many(accounts),
 }));
 
 // Roles relations
@@ -199,5 +204,20 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
     fields: [auditLog.targetUserId],
     references: [users.id],
     relationName: "targetUser",
+  }),
+}));
+
+// Better Auth session relations
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
   }),
 }));

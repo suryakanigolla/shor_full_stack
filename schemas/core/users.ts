@@ -2,11 +2,10 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Base users table - no role field, completely role-based
+// Base users table - Better Auth integrated
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   profilePic: text("profile_pic"),
@@ -17,7 +16,7 @@ export const users = pgTable("users", {
   isActive: boolean("is_active").default(true).notNull(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   // Better Auth integration fields
-  authId: text("auth_id").unique(), // Better Auth user ID
+  authId: text("auth_id").unique().notNull(), 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

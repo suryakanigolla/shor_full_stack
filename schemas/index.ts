@@ -5,6 +5,7 @@
 export * from "./core/users";
 export * from "./core/roles";
 export * from "./core/user-roles";
+export * from "./core/sessions";
 
 // User type extension schemas
 export * from "./user-types/artists";
@@ -38,6 +39,12 @@ export {
   userRoles,
   rolePermissions,
 } from "./core/user-roles";
+
+export {
+  sessions,
+  accounts,
+  verifications,
+} from "./core/sessions";
 
 export {
   artists,
@@ -77,6 +84,8 @@ export {
   actionsRelations,
   userRolesRelations,
   rolePermissionsRelations,
+  sessionsRelations,
+  accountsRelations,
   artistsRelations,
   studiosRelations,
   studentsRelations,
@@ -108,6 +117,15 @@ export type {
   InsertUserRole,
   InsertRolePermission,
 } from "./core/user-roles";
+
+export type {
+  Session,
+  Account,
+  Verification,
+  InsertSession,
+  InsertAccount,
+  InsertVerification,
+} from "./core/sessions";
 
 export type {
   Artist,
