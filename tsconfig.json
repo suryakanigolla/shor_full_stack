@@ -48,18 +48,25 @@
     // Path Mapping
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./db/schemas/*"],
-      "@/core/*": ["./db/schemas/core/*"],
-      "@/features/*": ["./db/schemas/features/*"],
-      "@/user-types/*": ["./db/schemas/user-types/*"],
-      "@/shared/*": ["./db/schemas/shared/*"]
+      // Source code aliases
+      "@/*": ["./src/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/middlewares/*": ["./src/middlewares/*"],
+      
+      // Database schema aliases
+      "@/db/*": ["./src/db/*"],
+      "@/schemas/*": ["./src/db/schemas/*"],
+      "@/core/*": ["./src/db/schemas/core/*"],
+      "@/features/*": ["./src/db/schemas/features/*"],
+      "@/user-types/*": ["./src/db/schemas/user-types/*"],
+      "@/shared/*": ["./src/db/schemas/shared/*"],
+      "@/migrations/*": ["./src/db/migrations/*"]
     }
   },
   
   // Include files to compile
   "include": [
-    "db/schemas/**/*",
-    "db/migrations/**/*",
+    "src/**/*",
     "*.ts"
   ],
   
