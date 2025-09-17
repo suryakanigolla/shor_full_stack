@@ -2,7 +2,7 @@ import { pgTable, serial, integer, boolean, timestamp, text } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { users } from "./users";
-import { roles } from "./roles";
+import { roles, actions } from "./roles";
 
 // User-role assignments (many-to-many)
 export const userRoles = pgTable("user_roles", {
@@ -23,9 +23,6 @@ export const rolePermissions = pgTable("role_permissions", {
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
-
-// Import actions for reference
-import { actions } from "./roles";
 
 // Insert schemas
 export const insertUserRoleSchema = createInsertSchema(userRoles).omit({ 
