@@ -6,9 +6,11 @@ import { users } from "./users";
 // Better Auth session table
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull().references(() => users.id),
   expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -16,7 +18,7 @@ export const sessions = pgTable("sessions", {
 // Better Auth account table for OAuth providers
 export const accounts = pgTable("accounts", {
   id: text("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull().references(() => users.id),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
   accessToken: text("access_token"),

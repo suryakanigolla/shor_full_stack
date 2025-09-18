@@ -6,7 +6,7 @@ import { users } from "../core/users";
 // Studios table - extends users with studio-specific information
 export const studios = pgTable("studios", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id), // Studio owner
+  userId: text("user_id").notNull().references(() => users.id), // Studio owner
   name: text("name").notNull(),
   address: text("address").notNull(),
   city: text("city").notNull(),

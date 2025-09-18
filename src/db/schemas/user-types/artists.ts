@@ -6,7 +6,7 @@ import { users } from "../core/users";
 // Artists table - extends users with artist-specific information
 export const artists = pgTable("artists", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull().references(() => users.id),
   bio: text("bio").notNull(),
   experience: integer("experience").notNull(), // Years of experience
   specialization: text("specialization").notNull(), // Dance form specialization

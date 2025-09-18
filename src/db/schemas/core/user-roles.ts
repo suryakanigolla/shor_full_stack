@@ -7,9 +7,9 @@ import { roles, actions } from "./roles";
 // User-role assignments (many-to-many)
 export const userRoles = pgTable("user_roles", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull().references(() => users.id),
   roleId: integer("role_id").notNull().references(() => roles.id),
-  assignedBy: integer("assigned_by").references(() => users.id), // Admin who assigned the role
+  assignedBy: text("assigned_by").references(() => users.id), // Admin who assigned the role
   assignedAt: timestamp("assigned_at").defaultNow().notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   notes: text("notes"), // Admin notes about the role assignment

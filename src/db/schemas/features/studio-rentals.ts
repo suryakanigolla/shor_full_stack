@@ -7,7 +7,7 @@ import { studios } from "../user-types/studios";
 // Studio rental bookings table
 export const studioBookings = pgTable("studio_bookings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id), // Renter
+  userId: text("user_id").notNull().references(() => users.id), // Renter
   studioId: integer("studio_id").notNull().references(() => studios.id),
   bookingDate: date("booking_date").notNull(),
   startTime: time("start_time").notNull(),
@@ -33,7 +33,7 @@ export const studioRentalTransactions = pgTable("studio_rental_transactions", {
   id: serial("id").primaryKey(),
   studioBookingId: integer("studio_booking_id").notNull().references(() => studioBookings.id),
   studioId: integer("studio_id").notNull().references(() => studios.id),
-  renterId: integer("renter_id").notNull().references(() => users.id),
+  renterId: text("renter_id").notNull().references(() => users.id),
   rentalFee: integer("rental_fee").notNull(), // Amount paid to studio in paise
   platformFee: integer("platform_fee").notNull(), // Platform commission in paise
   totalAmount: integer("total_amount").notNull(), // Total amount in paise

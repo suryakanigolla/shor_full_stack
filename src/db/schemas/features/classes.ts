@@ -46,7 +46,7 @@ export const classes = pgTable("classes", {
 // Class bookings table
 export const classBookings = pgTable("class_bookings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id), // Student
+  userId: text("user_id").notNull().references(() => users.id), // Student
   classId: integer("class_id").notNull().references(() => classes.id),
   bookingDate: timestamp("booking_date").defaultNow().notNull(),
   price: integer("price").notNull(), // Price paid in paise

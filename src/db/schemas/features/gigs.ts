@@ -6,7 +6,7 @@ import { users } from "../core/users";
 // Gigs table - performance opportunities
 export const gigs = pgTable("gigs", {
   id: serial("id").primaryKey(),
-  hostId: integer("host_id").notNull().references(() => users.id), // Who created the gig
+  hostId: text("host_id").notNull().references(() => users.id), // Who created the gig
   title: text("title").notNull(),
   description: text("description").notNull(),
   requirements: text("requirements").notNull(), // What's required from performers
@@ -36,7 +36,7 @@ export const gigs = pgTable("gigs", {
 export const gigApplications = pgTable("gig_applications", {
   id: serial("id").primaryKey(),
   gigId: integer("gig_id").notNull().references(() => gigs.id),
-  userId: integer("user_id").notNull().references(() => users.id), // Applicant
+  userId: text("user_id").notNull().references(() => users.id), // Applicant
   status: text("status").notNull(), // applied, accepted, rejected
   appliedAt: timestamp("applied_at").defaultNow().notNull(),
   message: text("message"), // Application message
@@ -46,7 +46,7 @@ export const gigApplications = pgTable("gig_applications", {
   expectedPayment: integer("expected_payment"), // Expected payment in paise
   additionalInfo: jsonb("additional_info"), // Additional application info
   reviewedAt: timestamp("reviewed_at"),
-  reviewedBy: integer("reviewed_by").references(() => users.id), // Who reviewed the application
+  reviewedBy: text("reviewed_by").references(() => users.id), // Who reviewed the application
   reviewNotes: text("review_notes"), // Review notes
 });
 

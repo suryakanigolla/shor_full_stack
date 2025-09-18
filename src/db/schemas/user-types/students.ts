@@ -7,7 +7,7 @@ import { users } from "../core/users";
 // Note: This might not be needed if base users table is sufficient for students
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull().references(() => users.id),
   danceExperience: text("dance_experience"), // beginner, intermediate, advanced
   preferredDanceForms: jsonb("preferred_dance_forms"), // Array of dance forms
   skillLevel: text("skill_level"), // Current skill level

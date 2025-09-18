@@ -26,6 +26,15 @@ const EnvSchema = z.object({
   // CORS Configuration
   CORS_ORIGIN: z.string().default("http://localhost:3000,http://localhost:3001"),
   CORS_CREDENTIALS: z.coerce.boolean().default(true),
+  
+  // Better Auth Configuration
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: z.string().url(),
+  BETTER_AUTH_TRUSTED_ORIGINS: z.string().optional(),
+  
+  // OAuth Configuration (optional)
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 
 export type env = z.infer<typeof EnvSchema>;

@@ -4,10 +4,10 @@ import { z } from "zod";
 
 // Base users table - Better Auth integrated
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey(), // Changed to text for Better Auth compatibility
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
-  phone: text("phone").notNull(),
+  phone: text("phone"),
   profilePic: text("profile_pic"),
   gender: text("gender"),
   instagram: text("instagram"),
@@ -15,8 +15,7 @@ export const users = pgTable("users", {
   bio: text("bio"),
   isActive: boolean("is_active").default(true).notNull(),
   emailVerified: boolean("email_verified").default(false).notNull(),
-  // Better Auth integration fields
-  authId: text("auth_id").unique().notNull(), 
+  image: text("image"), // Better Auth expects this field
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
