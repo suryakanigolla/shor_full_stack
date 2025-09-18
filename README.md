@@ -149,6 +149,7 @@ The API will be available at `http://localhost:3000`
 | `npm run build` | Build production bundle |
 | `npm run start` | Start production server |
 | `npm run typecheck` | Run TypeScript type checking |
+| `npm run test` | Run test suite with Vitest |
 | `npm run db:setup` | Set up database and seed data |
 | `npm run db:migrate:generate` | Generate new migration from schema changes |
 | `npm run db:migrate:apply` | Apply pending migrations |
@@ -174,6 +175,142 @@ Open Drizzle Studio to explore your database:
 ```bash
 npm run db:studio
 ```
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite built with **Vitest** and **Hono's testing utilities**. Tests cover authentication flows, user registration, validation, and error handling.
+
+### Test Framework
+- **[Vitest](https://vitest.dev/)** - Fast unit testing framework
+- **[Hono Testing](https://hono.dev/guides/testing)** - Testing utilities for Hono applications
+- **Test Database** - Isolated test environment with automatic cleanup
+
+### Running Tests
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test -- --watch
+
+# Run tests with coverage
+npm run test -- --coverage
+
+# Run specific test file
+npm run test -- src/test/auth.test.ts
+```
+
+### Test Environment Setup
+
+Tests automatically:
+- Set `NODE_ENV=test` for isolated testing
+- Use a separate test database
+- Clean up data between test runs
+- Reset database state before each test suite
+
+### Test Coverage
+
+The test suite includes comprehensive coverage for:
+
+#### Authentication Tests (`src/test/auth.test.ts`)
+- **User Registration**
+  - Student, artist, and studio owner registration
+  - Input validation (email format, password strength, required fields)
+  - Duplicate email handling
+  - Role-based user creation
+
+- **User Login**
+  - Valid credential authentication
+  - Invalid password/email handling
+  - Input validation
+
+- **User Profile Management**
+  - Profile retrieval with authentication
+  - Profile updates with validation
+  - Password change functionality
+  - Session management
+
+- **Password Recovery**
+  - Forgot password flow
+  - Email verification (when implemented)
+  - Input validation
+
+- **Session Management**
+  - Session creation and validation
+  - Logout functionality
+  - Token-based authentication
+
+### Test Data Management
+
+Tests use predefined test data for different user types:
+
+```typescript
+const testUsers = {
+    student: {
+        email: "student@test.com",
+        password: "password123",
+        name: "Test Student",
+        // ... other fields
+    },
+    artist: {
+        email: "artist@test.com",
+        // ... artist-specific fields
+    },
+    studio: {
+        email: "studio@test.com",
+        // ... studio-specific fields
+    }
+};
+```
+
+### Database Cleanup
+
+Each test suite includes automatic database cleanup:
+- Clears all test data before and after tests
+- Maintains referential integrity during cleanup
+- Ensures test isolation
+
+### Writing New Tests
+
+When adding new features, follow these testing patterns:
+
+1. **Create test file** in `src/test/` directory
+2. **Use test utilities** from Hono testing
+3. **Set up test data** with proper cleanup
+4. **Test both success and error cases**
+5. **Validate input/output schemas**
+
+Example test structure:
+```typescript
+import { testClient } from "hono/testing";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
+
+describe("Feature Name", () => {
+    beforeEach(async () => {
+        // Setup test data
+    });
+
+    afterAll(async () => {
+        // Cleanup test data
+    });
+
+    it("should handle success case", async () => {
+        // Test implementation
+    });
+
+    it("should handle error case", async () => {
+        // Error testing
+    });
+});
+```
+
+### Test Configuration
+
+Test configuration is defined in `vitest.config.ts`:
+- Node.js environment
+- TypeScript path aliases (`@/` for `src/`)
+- Global test utilities enabled
 
 ## 🔐 Authentication
 
@@ -240,8 +377,15 @@ The project is fully type-safe with:
 2. Create a feature branch
 3. Make your changes
 4. Run type checking: `npm run typecheck`
-5. Test your changes
-6. Submit a pull request
+5. Run tests: `npm run test`
+6. Ensure all tests pass and add tests for new features
+7. Submit a pull request
+
+### Testing Requirements
+- All new features must include comprehensive tests
+- Tests should cover both success and error scenarios
+- Maintain test coverage for existing functionality
+- Follow the established testing patterns in `src/test/`
 
 ## 📄 License
 
