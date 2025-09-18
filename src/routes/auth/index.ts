@@ -16,22 +16,21 @@ import {
   resendVerificationRoute,
 } from "./routes";
 
-const router = createRouter();
+const router = createRouter()
+  .openapi(loginRoute, handlers.handleLogin)
+  .openapi(registerRoute, handlers.handleRegister)
+  .openapi(logoutRoute, handlers.handleLogout)
+  .openapi(getProfileRoute, handlers.handleGetProfile)
+  .openapi(updateProfileRoute, handlers.handleUpdateProfile)
+  .openapi(changePasswordRoute, handlers.handleChangePassword)
+  .openapi(getSessionsRoute, handlers.handleGetSessions)
+  .openapi(revokeSessionRoute, handlers.handleRevokeSession)
+  .openapi(revokeAllSessionsRoute, handlers.handleRevokeAllSessions)
+  .openapi(forgotPasswordRoute, handlers.handlePasswordResetRequest)
+  .openapi(resetPasswordRoute, handlers.handlePasswordResetConfirm)
+  .openapi(verifyEmailRoute, handlers.handleEmailVerification)
+  .openapi(resendVerificationRoute, handlers.handleResendVerification);
 
-// Register auth routes
-router.openapi(loginRoute, handlers.handleLogin);
-router.openapi(registerRoute, handlers.handleRegister);
-router.openapi(logoutRoute, handlers.handleLogout);
-router.openapi(getProfileRoute, handlers.handleGetProfile);
-router.openapi(updateProfileRoute, handlers.handleUpdateProfile);
-router.openapi(changePasswordRoute, handlers.handleChangePassword);
-router.openapi(getSessionsRoute, handlers.handleGetSessions);
-router.openapi(revokeSessionRoute, handlers.handleRevokeSession);
-router.openapi(revokeAllSessionsRoute, handlers.handleRevokeAllSessions);
-router.openapi(forgotPasswordRoute, handlers.handlePasswordResetRequest);
-router.openapi(resetPasswordRoute, handlers.handlePasswordResetConfirm);
-router.openapi(verifyEmailRoute, handlers.handleEmailVerification);
-router.openapi(resendVerificationRoute, handlers.handleResendVerification);
 
 export type AuthRouter = typeof router;
 
