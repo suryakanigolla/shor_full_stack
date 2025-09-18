@@ -54,13 +54,13 @@
       "@/middlewares/*": ["./src/middlewares/*"],
       
       // Database schema aliases
-      "@/db/*": ["./src/db/*"],
-      "@/schemas/*": ["./src/db/schemas/*"],
-      "@/core/*": ["./src/db/schemas/core/*"],
-      "@/features/*": ["./src/db/schemas/features/*"],
-      "@/user-types/*": ["./src/db/schemas/user-types/*"],
-      "@/shared/*": ["./src/db/schemas/shared/*"],
-      "@/migrations/*": ["./src/db/migrations/*"]
+      "@/db/*": ["src/db/*"],
+      "@/schemas/*": ["src/db/schemas/*"],
+      "@/core/*": ["src/db/schemas/core/*"],
+      "@/features/*": ["src/db/schemas/features/*"],
+      "@/user-types/*": ["src/db/schemas/user-types/*"],
+      "@/shared/*": ["src/db/schemas/shared/*"],
+      "@/migrations/*": ["src/db/migrations/*"]
     }
   },
   

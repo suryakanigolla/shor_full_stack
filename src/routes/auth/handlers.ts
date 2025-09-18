@@ -1,13 +1,29 @@
-import { Context } from "hono";
 import { auth } from "@/lib/auth";
 import { db } from "@/db/config";
 import { users, userRoles, roles, sessions } from "@/db/schemas";
 import { eq, and, desc } from "drizzle-orm";
 import * as schemas from "./schemas";
 import * as HttpStatusCodes from "stoker/http-status-codes";
+import * as HttpStatusPhrases from "stoker/http-status-phrases";
+import type { AppRouteHandler } from "@/lib/types";
+import type {
+  LoginRoute,
+  RegisterRoute,
+  LogoutRoute,
+  GetProfileRoute,
+  UpdateProfileRoute,
+  ChangePasswordRoute,
+  GetSessionsRoute,
+  RevokeSessionRoute,
+  RevokeAllSessionsRoute,
+  ForgotPasswordRoute,
+  ResetPasswordRoute,
+  VerifyEmailRoute,
+  ResendVerificationRoute,
+} from "./routes";
 
 // Login handler
-export const handleLogin = async (c: Context) => {
+export const handleLogin: AppRouteHandler<LoginRoute> = async (c) => {
   try {
     const body = await c.req.json();
     const { email, password } = schemas.LoginRequestSchema.parse(body);
@@ -19,7 +35,7 @@ export const handleLogin = async (c: Context) => {
     
     if (!result.token) {
       return c.json({ 
-        error: "Authentication failed", 
+        error: HttpStatusPhrases.UNAUTHORIZED, 
         message: "Invalid credentials" 
       }, HttpStatusCodes.UNAUTHORIZED);
     }
@@ -35,13 +51,13 @@ export const handleLogin = async (c: Context) => {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -49,7 +65,7 @@ export const handleLogin = async (c: Context) => {
 };
 
 // Registration handler
-export const handleRegister = async (c: Context) => {
+export const handleRegister: AppRouteHandler<RegisterRoute> = async (c) => {
   try {
     const body = await c.req.json();
     const { role, ...userData } = schemas.RegisterRequestSchema.parse(body);
@@ -67,7 +83,7 @@ export const handleRegister = async (c: Context) => {
     // Check if registration was successful
     if (!result.user || !result.token) {
       return c.json({ 
-        error: "Registration failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "User creation failed",
         details: result
       }, HttpStatusCodes.BAD_REQUEST);
@@ -109,14 +125,14 @@ export const handleRegister = async (c: Context) => {
     
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -124,7 +140,7 @@ export const handleRegister = async (c: Context) => {
 };
 
 // Logout handler
-export const handleLogout = async (c: Context) => {
+export const handleLogout: AppRouteHandler<LogoutRoute> = async (c) => {
   try {
     await auth.api.signOut({
       headers: new Headers(c.req.header()),
@@ -133,14 +149,14 @@ export const handleLogout = async (c: Context) => {
     return c.json({ message: "Logged out successfully" }, HttpStatusCodes.OK);
   } catch (error) {
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred" 
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
 
 // Get current user profile
-export const handleGetProfile = async (c: Context) => {
+export const handleGetProfile: AppRouteHandler<GetProfileRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
       headers: new Headers(c.req.header()),
@@ -148,7 +164,7 @@ export const handleGetProfile = async (c: Context) => {
     
     if (!session) {
       return c.json({ 
-        error: "Unauthorized", 
+        error: HttpStatusPhrases.UNAUTHORIZED, 
         message: "No valid session found" 
       }, HttpStatusCodes.UNAUTHORIZED);
     }
@@ -156,7 +172,7 @@ export const handleGetProfile = async (c: Context) => {
     const user = await db.select().from(users).where(eq(users.id, session.user.id)).limit(1);
     if (user.length === 0) {
       return c.json({ 
-        error: "User not found", 
+        error: HttpStatusPhrases.NOT_FOUND, 
         message: "User profile not found" 
       }, HttpStatusCodes.NOT_FOUND);
     }
@@ -164,14 +180,14 @@ export const handleGetProfile = async (c: Context) => {
     return c.json(schemas.UserProfileSchema.parse(user[0]), HttpStatusCodes.OK);
   } catch (error) {
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred" 
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
 
 // Update profile
-export const handleUpdateProfile = async (c: Context) => {
+export const handleUpdateProfile: AppRouteHandler<UpdateProfileRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
       headers: new Headers(c.req.header()),
@@ -179,7 +195,7 @@ export const handleUpdateProfile = async (c: Context) => {
     
     if (!session) {
       return c.json({ 
-        error: "Unauthorized", 
+        error: HttpStatusPhrases.UNAUTHORIZED, 
         message: "No valid session found" 
       }, HttpStatusCodes.UNAUTHORIZED);
     }
@@ -194,7 +210,7 @@ export const handleUpdateProfile = async (c: Context) => {
     
     if (updatedUser.length === 0) {
       return c.json({ 
-        error: "User not found", 
+        error: HttpStatusPhrases.NOT_FOUND, 
         message: "User profile not found" 
       }, HttpStatusCodes.NOT_FOUND);
     }
@@ -203,13 +219,13 @@ export const handleUpdateProfile = async (c: Context) => {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -217,7 +233,7 @@ export const handleUpdateProfile = async (c: Context) => {
 };
 
 // Change password
-export const handleChangePassword = async (c: Context) => {
+export const handleChangePassword: AppRouteHandler<ChangePasswordRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
       headers: new Headers(c.req.header()),
@@ -225,7 +241,7 @@ export const handleChangePassword = async (c: Context) => {
     
     if (!session) {
       return c.json({ 
-        error: "Unauthorized", 
+        error: HttpStatusPhrases.UNAUTHORIZED, 
         message: "No valid session found" 
       }, HttpStatusCodes.UNAUTHORIZED);
     }
@@ -240,7 +256,7 @@ export const handleChangePassword = async (c: Context) => {
     
     if (!result.token) {
       return c.json({ 
-        error: "Password change failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid current password" 
       }, HttpStatusCodes.BAD_REQUEST);
     }
@@ -249,13 +265,13 @@ export const handleChangePassword = async (c: Context) => {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -263,7 +279,7 @@ export const handleChangePassword = async (c: Context) => {
 };
 
 // Get user sessions
-export const handleGetSessions = async (c: Context) => {
+export const handleGetSessions: AppRouteHandler<GetSessionsRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
       headers: new Headers(c.req.header()),
@@ -271,7 +287,7 @@ export const handleGetSessions = async (c: Context) => {
     
     if (!session) {
       return c.json({ 
-        error: "Unauthorized", 
+        error: HttpStatusPhrases.UNAUTHORIZED, 
         message: "No valid session found" 
       }, HttpStatusCodes.UNAUTHORIZED);
     }
@@ -283,14 +299,14 @@ export const handleGetSessions = async (c: Context) => {
     return c.json(userSessions.map(s => schemas.SessionInfoSchema.parse(s)), HttpStatusCodes.OK);
   } catch (error) {
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred" 
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
 
 // Revoke session
-export const handleRevokeSession = async (c: Context) => {
+export const handleRevokeSession: AppRouteHandler<RevokeSessionRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
       headers: new Headers(c.req.header()),
@@ -298,7 +314,7 @@ export const handleRevokeSession = async (c: Context) => {
     
     if (!session) {
       return c.json({ 
-        error: "Unauthorized", 
+        error: HttpStatusPhrases.UNAUTHORIZED, 
         message: "No valid session found" 
       }, HttpStatusCodes.UNAUTHORIZED);
     }
@@ -306,7 +322,7 @@ export const handleRevokeSession = async (c: Context) => {
     const sessionId = c.req.param("id");
     if (!sessionId) {
       return c.json({ 
-        error: "Bad request", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Session ID is required" 
       }, HttpStatusCodes.BAD_REQUEST);
     }
@@ -320,7 +336,7 @@ export const handleRevokeSession = async (c: Context) => {
     
     if (deletedSessions.length === 0) {
       return c.json({ 
-        error: "Not found", 
+        error: HttpStatusPhrases.NOT_FOUND, 
         message: "Session not found or already revoked" 
       }, HttpStatusCodes.NOT_FOUND);
     }
@@ -328,14 +344,14 @@ export const handleRevokeSession = async (c: Context) => {
     return c.json({ message: "Session revoked successfully" }, HttpStatusCodes.OK);
   } catch (error) {
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred" 
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
 
 // Revoke all sessions
-export const handleRevokeAllSessions = async (c: Context) => {
+export const handleRevokeAllSessions: AppRouteHandler<RevokeAllSessionsRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
       headers: new Headers(c.req.header()),
@@ -343,7 +359,7 @@ export const handleRevokeAllSessions = async (c: Context) => {
     
     if (!session) {
       return c.json({ 
-        error: "Unauthorized", 
+        error: HttpStatusPhrases.UNAUTHORIZED, 
         message: "No valid session found" 
       }, HttpStatusCodes.UNAUTHORIZED);
     }
@@ -354,14 +370,14 @@ export const handleRevokeAllSessions = async (c: Context) => {
     return c.json({ message: "All sessions revoked successfully" }, HttpStatusCodes.OK);
   } catch (error) {
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred" 
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
 
 // Password reset request
-export const handlePasswordResetRequest = async (c: Context) => {
+export const handlePasswordResetRequest: AppRouteHandler<ForgotPasswordRoute> = async (c) => {
   try {
     const body = await c.req.json();
     const { email } = schemas.PasswordResetRequestSchema.parse(body);
@@ -373,7 +389,7 @@ export const handlePasswordResetRequest = async (c: Context) => {
     
     if (!result.status) {
       return c.json({ 
-        error: "Password reset failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Failed to send password reset email" 
       }, HttpStatusCodes.BAD_REQUEST);
     }
@@ -382,13 +398,13 @@ export const handlePasswordResetRequest = async (c: Context) => {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -396,7 +412,7 @@ export const handlePasswordResetRequest = async (c: Context) => {
 };
 
 // Password reset confirmation
-export const handlePasswordResetConfirm = async (c: Context) => {
+export const handlePasswordResetConfirm: AppRouteHandler<ResetPasswordRoute> = async (c) => {
   try {
     const body = await c.req.json();
     const { token, password } = schemas.PasswordResetConfirmSchema.parse(body);
@@ -408,7 +424,7 @@ export const handlePasswordResetConfirm = async (c: Context) => {
     
     if (!result.status) {
       return c.json({ 
-        error: "Password reset failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid or expired token" 
       }, HttpStatusCodes.BAD_REQUEST);
     }
@@ -417,13 +433,13 @@ export const handlePasswordResetConfirm = async (c: Context) => {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -431,7 +447,7 @@ export const handlePasswordResetConfirm = async (c: Context) => {
 };
 
 // Email verification
-export const handleEmailVerification = async (c: Context) => {
+export const handleEmailVerification: AppRouteHandler<VerifyEmailRoute> = async (c) => {
   try {
     const body = await c.req.json();
     const { token } = schemas.EmailVerificationSchema.parse(body);
@@ -443,7 +459,7 @@ export const handleEmailVerification = async (c: Context) => {
     
     if (!result || !result.status) {
       return c.json({ 
-        error: "Email verification failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid or expired token" 
       }, HttpStatusCodes.BAD_REQUEST);
     }
@@ -452,13 +468,13 @@ export const handleEmailVerification = async (c: Context) => {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -466,7 +482,7 @@ export const handleEmailVerification = async (c: Context) => {
 };
 
 // Resend verification email
-export const handleResendVerification = async (c: Context) => {
+export const handleResendVerification: AppRouteHandler<ResendVerificationRoute> = async (c) => {
   try {
     const body = await c.req.json();
     const { email } = schemas.PasswordResetRequestSchema.parse(body);
@@ -478,7 +494,7 @@ export const handleResendVerification = async (c: Context) => {
     
     if (!result.status) {
       return c.json({ 
-        error: "Resend verification failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Failed to send verification email" 
       }, HttpStatusCodes.BAD_REQUEST);
     }
@@ -487,13 +503,13 @@ export const handleResendVerification = async (c: Context) => {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({ 
-        error: "Validation failed", 
+        error: HttpStatusPhrases.BAD_REQUEST, 
         message: "Invalid input data",
         details: { validationError: error.message }
       }, HttpStatusCodes.BAD_REQUEST);
     }
     return c.json({ 
-      error: "Internal server error", 
+      error: HttpStatusPhrases.INTERNAL_SERVER_ERROR, 
       message: "An unexpected error occurred",
       details: { error: error instanceof Error ? error.message : "Unknown error" }
     }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
