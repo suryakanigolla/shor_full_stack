@@ -74,9 +74,10 @@ export const BetterAuthUserSchema = z.object({
   updatedAt: z.date(),
 });
 
-// User profile response (for our API responses)
-export const UserProfileSchema = z.object({
-  id: z.string(), // Changed to string to match Better Auth
+// Add this new enriched user schema
+export const EnrichedUserSchema = z.object({
+  // Basic user fields
+  id: z.string(),
   email: z.string(),
   name: z.string(),
   phone: z.string().optional(),
@@ -89,7 +90,46 @@ export const UserProfileSchema = z.object({
   emailVerified: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
+
+  // New enriched fields from hooks
+  permissions: z.array(z.string()).optional(),
+  userType: z.enum(['artist', 'studio', 'student', 'basic']).optional(),
+  recentActivity: z.object({
+    classBookings: z.number(),
+    studioBookings: z.number(),
+    gigApplications: z.number(),
+  }).optional(),
+
+  // User type specific data
+  artist: z.object({
+    id: z.number(),
+    userId: z.string(),
+    // ... other artist fields
+  }).optional(),
+  studio: z.object({
+    id: z.number(),
+    userId: z.string(),
+    // ... other studio fields
+  }).optional(),
+  student: z.object({
+    id: z.number(),
+    userId: z.string(),
+    // ... other student fields
+  }).optional(),
 });
+
+// Update the auth response to use enriched user
+export const AuthResponseSchema = z.object({
+  user: EnrichedUserSchema, // Changed from BetterAuthUserSchema
+  session: z.object({
+    id: z.string(),
+    token: z.string(),
+    expiresAt: z.date(),
+  }),
+});
+
+// Update user profile response
+export const UserProfileSchema = EnrichedUserSchema;
 
 // Session info response
 export const SessionInfoSchema = z.object({
@@ -99,16 +139,6 @@ export const SessionInfoSchema = z.object({
   expiresAt: z.date(),
   userAgent: z.string().optional(),
   ipAddress: z.string().optional(),
-});
-
-// Auth response (login/register)
-export const AuthResponseSchema = z.object({
-  user: BetterAuthUserSchema,
-  session: z.object({
-    id: z.string(),
-    token: z.string(),
-    expiresAt: z.date(),
-  }),
 });
 
 // Error response

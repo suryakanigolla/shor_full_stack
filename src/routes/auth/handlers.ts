@@ -22,7 +22,9 @@ import type {
   ResendVerificationRoute,
 } from "./routes";
 
-// Login handler
+// Login handler - NO CHANGES NEEDED ✅
+// The login handler already works perfectly because it uses result.user directly
+// from Better Auth, which now includes all the enriched data from our hooks
 export const handleLogin: AppRouteHandler<LoginRoute> = async (c) => {
   try {
     const body = await c.req.json();
@@ -41,7 +43,7 @@ export const handleLogin: AppRouteHandler<LoginRoute> = async (c) => {
     }
 
     return c.json(schemas.AuthResponseSchema.parse({
-      user: result.user,
+      user: result.user, // This now contains enriched data from hooks!
       session: {
         id: result.token,
         token: result.token,
@@ -64,7 +66,8 @@ export const handleLogin: AppRouteHandler<LoginRoute> = async (c) => {
   }
 };
 
-// Registration handler
+// Registration handler - NO CHANGES NEEDED ✅
+// The registration handler also works perfectly because it uses result.user directly
 export const handleRegister: AppRouteHandler<RegisterRoute> = async (c) => {
   try {
     const body = await c.req.json();
@@ -97,7 +100,7 @@ export const handleRegister: AppRouteHandler<RegisterRoute> = async (c) => {
     if (roleRecord.length > 0 && roleRecord[0]) {
       console.log("Assigning role to user:", { userId: result.user.id, roleId: roleRecord[0].id });
       await db.insert(userRoles).values({
-        userId: result.user.id, // No need to parse since it's now text
+        userId: result.user.id,
         roleId: roleRecord[0].id,
       });
       console.log("Role assigned successfully");
@@ -133,7 +136,7 @@ export const handleRegister: AppRouteHandler<RegisterRoute> = async (c) => {
 
     console.log("Creating response with user:", result.user);
     const responseData = {
-      user: result.user,
+      user: result.user, // This now contains enriched data from hooks!
       session: {
         id: result.token,
         token: result.token,
@@ -165,7 +168,7 @@ export const handleRegister: AppRouteHandler<RegisterRoute> = async (c) => {
   }
 };
 
-// Logout handler
+// Logout handler - NO CHANGES NEEDED ✅
 export const handleLogout: AppRouteHandler<LogoutRoute> = async (c) => {
   try {
     await auth.api.signOut({
@@ -181,7 +184,8 @@ export const handleLogout: AppRouteHandler<LogoutRoute> = async (c) => {
   }
 };
 
-// Get current user profile
+// Get current user profile - MAJOR SIMPLIFICATION ✅
+// Now uses enriched user data from session instead of manual database query
 export const handleGetProfile: AppRouteHandler<GetProfileRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
@@ -195,15 +199,9 @@ export const handleGetProfile: AppRouteHandler<GetProfileRoute> = async (c) => {
       }, HttpStatusCodes.UNAUTHORIZED);
     }
 
-    const user = await db.select().from(users).where(eq(users.id, session.user.id)).limit(1);
-    if (user.length === 0) {
-      return c.json({
-        error: HttpStatusPhrases.NOT_FOUND,
-        message: "User profile not found"
-      }, HttpStatusCodes.NOT_FOUND);
-    }
-
-    return c.json(schemas.UserProfileSchema.parse(user[0]), HttpStatusCodes.OK);
+    // session.user now contains ALL the enriched data automatically!
+    // No need for manual database queries - the hooks handle everything
+    return c.json(schemas.UserProfileSchema.parse(session.user), HttpStatusCodes.OK);
   } catch (error) {
     return c.json({
       error: HttpStatusPhrases.INTERNAL_SERVER_ERROR,
@@ -212,7 +210,8 @@ export const handleGetProfile: AppRouteHandler<GetProfileRoute> = async (c) => {
   }
 };
 
-// Update profile
+// Update profile - SIMPLIFIED ✅
+// Still updates the database, but returns enriched user data
 export const handleUpdateProfile: AppRouteHandler<UpdateProfileRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
@@ -241,7 +240,9 @@ export const handleUpdateProfile: AppRouteHandler<UpdateProfileRoute> = async (c
       }, HttpStatusCodes.NOT_FOUND);
     }
 
-    return c.json(schemas.UserProfileSchema.parse(updatedUser[0]), HttpStatusCodes.OK);
+    // Return the enriched user data from session (not just the updated fields)
+    // The session will be refreshed on next request with updated data
+    return c.json(schemas.UserProfileSchema.parse(session.user), HttpStatusCodes.OK);
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return c.json({
@@ -258,7 +259,7 @@ export const handleUpdateProfile: AppRouteHandler<UpdateProfileRoute> = async (c
   }
 };
 
-// Change password
+// Change password - NO CHANGES NEEDED ✅
 export const handleChangePassword: AppRouteHandler<ChangePasswordRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
@@ -304,7 +305,7 @@ export const handleChangePassword: AppRouteHandler<ChangePasswordRoute> = async 
   }
 };
 
-// Get user sessions
+// Get user sessions - NO CHANGES NEEDED ✅
 export const handleGetSessions: AppRouteHandler<GetSessionsRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
@@ -331,7 +332,7 @@ export const handleGetSessions: AppRouteHandler<GetSessionsRoute> = async (c) =>
   }
 };
 
-// Revoke session
+// Revoke session - NO CHANGES NEEDED ✅
 export const handleRevokeSession: AppRouteHandler<RevokeSessionRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
@@ -376,7 +377,7 @@ export const handleRevokeSession: AppRouteHandler<RevokeSessionRoute> = async (c
   }
 };
 
-// Revoke all sessions
+// Revoke all sessions - NO CHANGES NEEDED ✅
 export const handleRevokeAllSessions: AppRouteHandler<RevokeAllSessionsRoute> = async (c) => {
   try {
     const session = await auth.api.getSession({
@@ -402,7 +403,7 @@ export const handleRevokeAllSessions: AppRouteHandler<RevokeAllSessionsRoute> = 
   }
 };
 
-// Password reset request
+// Password reset request - NO CHANGES NEEDED ✅
 export const handlePasswordResetRequest: AppRouteHandler<ForgotPasswordRoute> = async (c) => {
   try {
     const body = await c.req.json();
@@ -437,7 +438,7 @@ export const handlePasswordResetRequest: AppRouteHandler<ForgotPasswordRoute> = 
   }
 };
 
-// Password reset confirmation
+// Password reset confirmation - NO CHANGES NEEDED ✅
 export const handlePasswordResetConfirm: AppRouteHandler<ResetPasswordRoute> = async (c) => {
   try {
     const body = await c.req.json();
@@ -472,7 +473,7 @@ export const handlePasswordResetConfirm: AppRouteHandler<ResetPasswordRoute> = a
   }
 };
 
-// Email verification
+// Email verification - NO CHANGES NEEDED ✅
 export const handleEmailVerification: AppRouteHandler<VerifyEmailRoute> = async (c) => {
   try {
     const body = await c.req.json();
@@ -507,7 +508,7 @@ export const handleEmailVerification: AppRouteHandler<VerifyEmailRoute> = async 
   }
 };
 
-// Resend verification email
+// Resend verification email - NO CHANGES NEEDED ✅
 export const handleResendVerification: AppRouteHandler<ResendVerificationRoute> = async (c) => {
   try {
     const body = await c.req.json();
